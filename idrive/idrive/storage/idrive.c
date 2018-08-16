@@ -79,7 +79,7 @@ static int idrive_get_remaining_space(struct idrive_handle *handle)
 }
 
 
-IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_operation *operation, char **buf)
+IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_operation *operation)
 {
     if (operation->optype == READ || operation->optype == STEALTH_MAP)
         return -1;
@@ -162,6 +162,22 @@ IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
         printf("No operations queued.");
         return -1;
     }
+    
+    int status = idrive_write(handle, handle->operations[0]);
+    
+    if (status != 0)
+        return -1;
+    
+    /* Rotate operation list by 1 */
+    
+    handle->operations[0] = NULL;
+    
+    for (int i = 1; i < handle->opcount; i++) {
+        handle->operations[i - 1] = handle->operations[i];
+    }
+    
+    handle->operations[handle->opcount - 1] = NULL;
+    handle->opcount--;
     
     return 0;
 }
