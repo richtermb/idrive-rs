@@ -7,9 +7,11 @@
 //
 
 #include <stdio.h>
+#include "idevice.h"
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    printf("Hello, World!\n");
+    struct idevice_handle **devs = NULL;
+    int aDs = retrieve_available_devices(&devs);
+    printf(devs[0]->name);
     return 0;
 }
