@@ -14,7 +14,7 @@ static int retrieve_device_name(idevice_t device, char **name)
     lockdownd_client_t client = NULL;
     lockdownd_error_t error;
     
-    lockdownd_client_new(device, &client, "com.idrive.coreservices");
+    lockdownd_client_new(device, &client, "com.idrive.core");
     
     if (client == NULL)
         return -1;
@@ -23,6 +23,8 @@ static int retrieve_device_name(idevice_t device, char **name)
     
     if (error < 0 || *name == NULL)
         return -1;
+    
+    lockdownd_client_free(client);
     
     return 0;
 }
@@ -53,6 +55,7 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
             return -1;
         
         devs[i]->handle = NULL;
+        devs[i]->client = NULL;
         devs[i]->name = NULL;
         
         error = idevice_new(&devs[i]->handle, udids[i]);
@@ -60,10 +63,18 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
         if (error < 0 || devs[i]->handle == NULL)
             return -1;
         
+        lockdownd_client_new(devs[i]->handle, &devs[i]->client, "com.idrive.core");
+        
+        if (devs[i]->client == NULL)
+            return -1;
+        
+        
         int nr_error = retrieve_device_name(devs[i]->handle, &devs[i]->name);
 
         if (nr_error < 0)
             return -1;
+        
+        
     }
     
     *devices = devs;

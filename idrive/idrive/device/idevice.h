@@ -21,6 +21,7 @@
 
 struct idevice_handle {
     idevice_t handle;
+    lockdownd_client_t client;
     char *name;
 };
 
