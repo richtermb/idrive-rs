@@ -33,6 +33,52 @@ static int idrive_get_remaining_space(struct idrive_handle *handle)
 }
 
 
+static const char *DBG_OPTYPE_TO_STR(enum OPERATION_TYPE optype)
+{
+    switch (optype) {
+        case WRITE:
+            return "WRITE";
+            break;
+        case READ:
+            return "READ";
+            break;
+        default:
+            return NULL;
+            break;
+    }
+}
+
+
+static const char *DBG_OPSTATE_TO_STR(enum OPERATION_STATE opstate)
+{
+    switch (opstate) {
+        case UNSTARTED:
+            return "UNSTARTED";
+            break;
+        case IN_PROGRESS:
+            return "IN PROGRESS";
+            break;
+        case FINISHED:
+            return "FINISHED";
+            break;
+        default:
+            return NULL;
+            break;
+    }
+}
+
+
+IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle)
+{
+    for (int i = 0; i < handle->opcount; i++) {
+        printf("{\n");
+        printf("\t\"operationType\": \"%s\",\n", DBG_OPTYPE_TO_STR(handle->operations[i]->optype));
+        printf("\t\"operationState\": \"%s\"\n", DBG_OPSTATE_TO_STR(handle->operations[i]->state));
+        printf("}\n");
+    }
+}
+
+
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle)
 {
     struct idrive_handle *new_drive = malloc(sizeof(struct idrive_handle));
@@ -67,6 +113,8 @@ IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_
     }
     
     handle->operations[handle->opcount] = &operation;
+    
+    handle->opcount++;
     
     return 0;
 }

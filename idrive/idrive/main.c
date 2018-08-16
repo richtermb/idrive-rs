@@ -27,8 +27,16 @@ int main(int argc, const char * argv[]) {
     
     int res = idrive_init(devs[idx], &hdl);
     
-    if (res == 0)
-        printf("rem_space: %llu", hdl->bytes);
+    struct idrive_operation op;
+    op.fp = NULL;
+    op.len = 5;
+    op.optype = READ;
+    op.state = UNSTARTED;
+    op.written = NULL;
+    
+    idrive_add_operation(hdl, op);
+    
+    DBG_PRINT_OPERATIONS(hdl);
     
     return 0;
 }

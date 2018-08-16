@@ -62,6 +62,8 @@ struct idrive_handle {
 };
 
 
+IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle);
+
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle);
 IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation operation);
 
