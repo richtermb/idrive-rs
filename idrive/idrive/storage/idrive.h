@@ -10,12 +10,18 @@
 #define idrive_h
 
 #include <stdio.h>
+#include <string.h>
 
 #include "idevice.h"
 
 #ifndef IDRIVE_API
 #define IDRIVE_API
 #endif
+
+#define IDRVDIR "/IDRVMAIN"
+
+
+#define IDRPATH(s) strcat(IDRVDIR, s)
 
 #define INITIAL_OPERATIONS_SIZE 10
 
@@ -36,10 +42,12 @@ struct idrive_operation {
     enum OPERATION_TYPE optype;
     /* Pointer to file to save */
     FILE *fp;
+    /* File key */
+    char *key;
     /* Size of file in bytes */
     int len;
     /* Bytes written */
-    int *written;
+    uint32_t written;
     /* Op state */
     enum OPERATION_STATE state;
 };

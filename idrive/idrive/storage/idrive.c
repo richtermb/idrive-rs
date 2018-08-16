@@ -9,30 +9,6 @@
 #include "idrive.h"
 
 
-static int idrive_get_remaining_space(struct idrive_handle *handle)
-{
-    plist_t node = NULL;
-    
-    lockdownd_error_t error;
-    
-    if (handle->idh->client == NULL) {
-        printf("No lockdownd clients activate for device.\n");
-        return -1;
-    }
-    
-    error = lockdownd_get_value(handle->idh->client, "com.apple.disk_usage", "TotalDataAvailable", &node);
-    
-    if (error != 0 || node == NULL) {
-        printf("Error getting disk usage: %d\n", error);
-        return -1;
-    }
-    
-    plist_get_uint_val(node, &handle->bytes);
-    
-    return 0;
-}
-
-
 static const char *DBG_OPTYPE_TO_STR(enum OPERATION_TYPE optype)
 {
     switch (optype) {
@@ -79,6 +55,66 @@ IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle)
 }
 
 
+static int idrive_get_remaining_space(struct idrive_handle *handle)
+{
+    plist_t node = NULL;
+    
+    lockdownd_error_t error;
+    
+    if (handle->idh->lockdownd_client == NULL) {
+        printf("No lockdownd clients activate for device.\n");
+        return -1;
+    }
+    
+    error = lockdownd_get_value(handle->idh->lockdownd_client, "com.apple.disk_usage", "TotalDataAvailable", &node);
+    
+    if (error != 0 || node == NULL) {
+        printf("Error getting disk usage: %d\n", error);
+        return -1;
+    }
+    
+    plist_get_uint_val(node, &handle->bytes);
+    
+    return 0;
+}
+
+
+IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_operation *operation, char **buf)
+{
+    if (operation->optype == READ || operation->optype == STEALTH_MAP)
+        return -1;
+    
+    afc_error_t error;
+    
+    uint64_t fd;
+    
+    operation->state = IN_PROGRESS;
+    
+    /* Creates a new file on the device */
+    error = afc_file_open(handle->idh->afc_client, IDRPATH(operation->key), AFC_FOPEN_WRONLY, &fd);
+    
+    if (error != AFC_E_SUCCESS)
+        return -1;
+    
+    char *data = malloc(operation->len);
+    
+    if (data == NULL)
+        return -1;
+    
+    size_t bytes_read = fread(data, sizeof(char), operation->len, operation->fp);
+    
+    if (bytes_read != operation->len)
+        return -1;
+    
+    error = afc_file_write(handle->idh->afc_client, fd, data, operation->len, &operation->written);
+    
+    if (error != AFC_E_SUCCESS)
+        return -1;
+
+    return 0;
+}
+
+
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle)
 {
     struct idrive_handle *new_drive = malloc(sizeof(struct idrive_handle));
@@ -115,6 +151,17 @@ IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_
     handle->operations[handle->opcount] = &operation;
     
     handle->opcount++;
+    
+    return 0;
+}
+
+
+IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
+{
+    if (handle->opcount == 0 || handle->operations[0] == NULL) {
+        printf("No operations queued.");
+        return -1;
+    }
     
     return 0;
 }

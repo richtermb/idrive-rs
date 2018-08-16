@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <libimobiledevice/afc.h>
 #include <libimobiledevice/libimobiledevice.h>
 #include <libimobiledevice/lockdown.h>
 
@@ -21,7 +22,8 @@
 
 struct idevice_handle {
     idevice_t handle;
-    lockdownd_client_t client;
+    lockdownd_client_t lockdownd_client;
+    afc_client_t afc_client;
     char *name;
 };
 
