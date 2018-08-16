@@ -59,14 +59,13 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
         if (id_error < 0 || devs[i]->handle == NULL)
             return -1;
         
-        ld_error = lockdownd_client_new(devs[i]->handle, &devs[i]->client, "com.idrive.core");
+        ld_error = lockdownd_client_new_with_handshake(devs[i]->handle, &devs[i]->client, "com.idrive.core");
         
         if (ld_error < 0)
             return -1;
         
         if (devs[i]->client == NULL)
             return -1;
-        
         
         int nr_error = retrieve_device_name(devs[i]->client, &devs[i]->name);
 
