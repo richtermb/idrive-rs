@@ -15,11 +15,17 @@ static int idrive_get_remaining_space(struct idrive_handle *handle)
     
     lockdownd_error_t error;
     
+    if (handle->idh->client == NULL) {
+        printf("No lockdownd clients activate for device.\n");
+        return -1;
+    }
+    
     error = lockdownd_get_value(handle->idh->client, "com.apple.disk_usage", "TotalDataAvailable", &node);
     
-    if (error != 0 || node == NULL)
+    if (error != 0 || node == NULL) {
         printf("Error getting disk usage: %d\n", error);
         return -1;
+    }
     
     plist_get_uint_val(node, &handle->bytes);
     

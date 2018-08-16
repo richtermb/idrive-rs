@@ -27,8 +27,8 @@ int main(int argc, const char * argv[]) {
     
     int res = idrive_init(devs[idx], &hdl);
     
-    printf("rem_space: %llu", hdl->bytes);
-    
+    if (res == 0)
+        printf("rem_space: %llu", hdl->bytes);
     
     return 0;
 }
