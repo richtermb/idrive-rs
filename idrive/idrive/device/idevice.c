@@ -55,12 +55,10 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
         devs[i]->name = NULL;
         
         id_error = idevice_new(&devs[i]->handle, udids[i]);
-        
         if (id_error != IDEVICE_E_SUCCESS || devs[i]->handle == NULL)
             return -1;
         
         ld_error = lockdownd_client_new_with_handshake(devs[i]->handle, &devs[i]->lockdownd_client, "com.idrive.core");
-        
         if (ld_error != LOCKDOWN_E_SUCCESS)
             return -1;
         
@@ -68,30 +66,23 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
             return -1;
         
         lockdownd_service_descriptor_t service_descriptor = NULL;
-        
         ld_error = lockdownd_start_service(devs[i]->lockdownd_client, "com.apple.afc", &service_descriptor);
-
         if (ld_error != LOCKDOWN_E_SUCCESS)
             return -1;
 
         afc_error = afc_client_new(devs[i]->handle, service_descriptor, &devs[i]->afc_client);
-        
         if (afc_error != AFC_E_SUCCESS || devs[i]->afc_client == NULL)
             return -1;
         
         lockdownd_service_descriptor_free(service_descriptor);
-        
         service_descriptor = NULL;
-
         int nr_error = retrieve_device_name(devs[i]->lockdownd_client, &devs[i]->name);
-
         if (nr_error != 0)
             return -1;
 
     }
     
     *devices = devs;
-    
     return dcount;
 }
 

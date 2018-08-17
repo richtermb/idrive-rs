@@ -103,15 +103,10 @@ IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_o
         return -1;
     
     afc_error_t error;
-    
     uint64_t fd;
-    
     operation->state = IN_PROGRESS;
     
     /* Creates a new file on the device */
-    
-    printf("Writing data to %s...\n", IDRVCMPLTKEY(operation->key));
-    
     error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(operation->key), AFC_FOPEN_WR, &fd);
     
     if (error != AFC_E_SUCCESS) {
@@ -144,19 +139,16 @@ IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **ha
     
     new_drive->idh = dev;
     new_drive->bytes = 0;
-
     new_drive->operations = malloc(sizeof(struct idrive_operation *) * INITIAL_OPERATIONS_SIZE);
     new_drive->opcount = 0;
     new_drive->opsize = INITIAL_OPERATIONS_SIZE;
     
     if (idrive_get_remaining_space(new_drive) < 0)
         return -1;
-    
     if (new_drive->bytes == 0)
         return -1;
-
-    *handle = new_drive;
     
+    *handle = new_drive;
     return 0;
 }
 
@@ -166,15 +158,12 @@ IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_
     if (handle->opcount >= handle->opsize) {
         /* if the operations list is full, increase memory available to it by a factor of 2 */
         handle->operations = realloc(handle->operations, sizeof(struct idrive_operation) * handle->opcount * 2);
-        
         if (handle->operations == NULL)
             return -1;
     }
     
     handle->operations[handle->opcount] = &operation;
-    
     handle->opcount++;
-    
     return 0;
 }
 
@@ -197,15 +186,11 @@ IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
     }
     
     /* Rotate operation list by 1 */
-    
     handle->operations[0] = NULL;
     
-    
     for (int i = 1; i < handle->opcount; i++) {
-        printf("Doing one iter.\n");
         handle->operations[i - 1] = handle->operations[i];
     }
-    
     
     handle->operations[handle->opcount - 1] = NULL;
     handle->opcount--;
