@@ -13,9 +13,7 @@
 
 int main(int argc, const char * argv[]) {
     struct idevice_handle **devices = NULL;
-    
     int device_count = retrieve_available_devices(&devices);
-    
     printf("device_count: %d\n", device_count);
     
     if (device_count <= 0) {
@@ -24,7 +22,6 @@ int main(int argc, const char * argv[]) {
     }
     
     struct idrive_handle *idrive = NULL;
-    
     int idx = -1;
     
     for (int i = 0; i < device_count; i++) {
@@ -43,15 +40,10 @@ int main(int argc, const char * argv[]) {
         .state = UNSTARTED,
         .written = 0
     };
-
     
     idrive_add_operation(idrive, operation);
-    
     DBG_PRINT_OPERATIONS(idrive);
-    
     idrive_process_operation(idrive);
-    
-    DBG_PRINT_OPERATIONS(idrive);
     
     return 0;
 }

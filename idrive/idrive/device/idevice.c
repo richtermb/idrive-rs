@@ -15,7 +15,6 @@ static int retrieve_device_name(lockdownd_client_t lockdownd_client, char **name
         return -1;
     
     lockdownd_error_t error = lockdownd_get_device_name(lockdownd_client, name);
-    
     if (error != LOCKDOWN_E_SUCCESS || *name == NULL)
         return -1;
     
