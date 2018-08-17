@@ -18,18 +18,17 @@
 #define IDRIVE_API
 #endif
 
-#define IDRVDIR "/IDRVMAIN"
-
-
-#define IDRPATH(s) strcat(IDRVDIR, s)
+#define IDRVBASE "/Documents/"
 
 #define INITIAL_OPERATIONS_SIZE 10
+
 
 enum OPERATION_TYPE {
     WRITE = 0,
     READ,
     STEALTH_MAP
 };
+
 
 enum OPERATION_STATE {
     UNSTARTED = 0,
@@ -40,8 +39,10 @@ enum OPERATION_STATE {
 
 struct idrive_operation {
     enum OPERATION_TYPE optype;
-    /* Pointer to file to save */
+    /* Pointer to file */
     FILE *fp;
+    /* Path of file */
+    char *lpath;
     /* File key */
     char *key;
     /* Size of file in bytes */
@@ -69,6 +70,8 @@ struct idrive_handle {
     int opsize;
 };
 
+
+char *IDRVCMPLTKEY(char *k);
 
 IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle);
 

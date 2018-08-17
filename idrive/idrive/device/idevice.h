@@ -30,7 +30,7 @@ struct idevice_handle {
 
 /*
  * retrieves iOS devices that are fit to use for storage.
- * returns: number of available devices. -1 on failure.
+ * returns number of available devices. -1 on failure.
  */
 IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices);
 

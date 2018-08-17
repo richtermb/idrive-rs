@@ -9,6 +9,16 @@
 #include "idrive.h"
 
 
+char *IDRVCMPLTKEY(char *k)
+{
+    char tmp[255] = IDRVBASE;
+    strcat(tmp, k);
+    char *res = malloc(sizeof(char) * 255);
+    strcpy(res, tmp);
+    return res;
+}
+
+
 static const char *DBG_OPTYPE_TO_STR(enum OPERATION_TYPE optype)
 {
     switch (optype) {
@@ -46,10 +56,18 @@ static const char *DBG_OPSTATE_TO_STR(enum OPERATION_STATE opstate)
 
 IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle)
 {
+    if (handle->opcount == 0) {
+        printf("No operations found.");
+        return;
+    }
+    
     for (int i = 0; i < handle->opcount; i++) {
         printf("{\n");
         printf("\t\"operationType\": \"%s\",\n", DBG_OPTYPE_TO_STR(handle->operations[i]->optype));
         printf("\t\"operationState\": \"%s\"\n", DBG_OPSTATE_TO_STR(handle->operations[i]->state));
+        printf("\t\"localPath\": \"%s\"\n", handle->operations[i]->lpath);
+        printf("\t\"key\": \"%s\"\n", handle->operations[i]->key);
+        printf("\t\"size\": %u\n", handle->operations[i]->len);
         printf("}\n");
     }
 }
@@ -91,10 +109,15 @@ IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_o
     operation->state = IN_PROGRESS;
     
     /* Creates a new file on the device */
-    error = afc_file_open(handle->idh->afc_client, IDRPATH(operation->key), AFC_FOPEN_WRONLY, &fd);
     
-    if (error != AFC_E_SUCCESS)
+    printf("Writing data to %s...\n", IDRVCMPLTKEY(operation->key));
+    
+    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(operation->key), AFC_FOPEN_WR, &fd);
+    
+    if (error != AFC_E_SUCCESS) {
+        printf("AFC Error: %d\n", error);
         return -1;
+    }
     
     char *data = malloc(operation->len);
     
@@ -163,18 +186,26 @@ IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
         return -1;
     }
     
-    int status = idrive_write(handle, handle->operations[0]);
+    int status = 0;
     
-    if (status != 0)
+    if (handle->operations[0]->optype == WRITE)
+        status = idrive_write(handle, handle->operations[0]);
+    
+    if (status != 0) {
+        printf("Error writing file.\n");
         return -1;
+    }
     
     /* Rotate operation list by 1 */
     
     handle->operations[0] = NULL;
     
+    
     for (int i = 1; i < handle->opcount; i++) {
+        printf("Doing one iter.\n");
         handle->operations[i - 1] = handle->operations[i];
     }
+    
     
     handle->operations[handle->opcount - 1] = NULL;
     handle->opcount--;
