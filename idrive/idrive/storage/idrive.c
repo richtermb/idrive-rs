@@ -233,7 +233,7 @@ IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
         return -1;
     }
     
-    /* Rotate operation list by 1 */
+    /* Rotate operation list to the left by 1 */
     handle->operations[0] = NULL;
     
     for (int i = 1; i < handle->opcount; i++) {

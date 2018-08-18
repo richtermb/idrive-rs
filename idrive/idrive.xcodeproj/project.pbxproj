@@ -12,7 +12,6 @@
 		E60BC5A721252A3D008281AE /* libplist.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E60BC5A621252A3D008281AE /* libplist.3.dylib */; };
 		E60BC5A921252A4E008281AE /* libimobiledevice.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E60BC5A821252A4E008281AE /* libimobiledevice.6.dylib */; };
 		E60BC5AD21252CEB008281AE /* idrive.c in Sources */ = {isa = PBXBuildFile; fileRef = E60BC5AC21252CEB008281AE /* idrive.c */; };
-		E60BC5B121253B28008281AE /* queue.c in Sources */ = {isa = PBXBuildFile; fileRef = E60BC5B021253B28008281AE /* queue.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,8 +35,6 @@
 		E60BC5A821252A4E008281AE /* libimobiledevice.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libimobiledevice.6.dylib; path = ../../../../../../usr/local/Cellar/libimobiledevice/1.2.0_2/lib/libimobiledevice.6.dylib; sourceTree = "<group>"; };
 		E60BC5AB21252CEB008281AE /* idrive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = idrive.h; sourceTree = "<group>"; };
 		E60BC5AC21252CEB008281AE /* idrive.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = idrive.c; sourceTree = "<group>"; };
-		E60BC5AF21253B28008281AE /* queue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = queue.h; sourceTree = "<group>"; };
-		E60BC5B021253B28008281AE /* queue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = queue.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,8 +108,6 @@
 		E60BC5AE21253B02008281AE /* core */ = {
 			isa = PBXGroup;
 			children = (
-				E60BC5AF21253B28008281AE /* queue.h */,
-				E60BC5B021253B28008281AE /* queue.c */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -174,7 +169,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E60BC59B21252960008281AE /* main.c in Sources */,
-				E60BC5B121253B28008281AE /* queue.c in Sources */,
 				E60BC5AD21252CEB008281AE /* idrive.c in Sources */,
 				E60BC5A4212529BA008281AE /* idevice.c in Sources */,
 			);
