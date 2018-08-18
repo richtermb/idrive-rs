@@ -133,6 +133,45 @@ IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_o
 }
 
 
+IDRIVE_API static int idrive_read(struct idrive_handle *handle, struct idrive_operation *operation)
+{
+    if (operation->optype == WRITE || operation->optype == STEALTH_MAP)
+        return -1;
+    
+    afc_error_t error;
+    uint64_t fd;
+    operation->state = IN_PROGRESS;
+    
+    /* Creates a new file on the device */
+    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(operation->key), AFC_FOPEN_RDONLY, &fd);
+    
+    if (error != AFC_E_SUCCESS) {
+        printf("AFC Error: %d\n", error);
+        return -1;
+    }
+    
+    char *data = malloc(operation->len);
+    
+    if (data == NULL)
+        return -1;
+    
+    error = afc_file_read(handle->idh->afc_client, fd, data, operation->len, &operation->read);
+    if (operation->read == (uint32_t)operation->len)
+        return -1;
+
+    /* write bytes out to file */
+    size_t bytes_written = fwrite(data, sizeof(char), operation->len, operation->fp);
+    
+    if (bytes_written != operation->len )
+        return -1;
+    
+    if (error != AFC_E_SUCCESS)
+        return -1;
+    
+    return 0;
+}
+
+
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle)
 {
     struct idrive_handle *new_drive = malloc(sizeof(struct idrive_handle));
@@ -177,11 +216,20 @@ IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
     
     int status = 0;
     
-    if (handle->operations[0]->optype == WRITE)
-        status = idrive_write(handle, handle->operations[0]);
+    switch (handle->operations[0]->optype) {
+        case WRITE:
+            idrive_write(handle, handle->operations[0]);
+            break;
+        case READ:
+            idrive_read(handle, handle->operations[0]);
+            break;
+        default:
+            return -1;
+            break;
+    }
     
     if (status != 0) {
-        printf("Error writing file.\n");
+        printf("Error performing operation.\n");
         return -1;
     }
     

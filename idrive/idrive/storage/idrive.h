@@ -18,6 +18,7 @@
 #define IDRIVE_API
 #endif
 
+/* Saves objects in full path: /Media/Documents/" */
 #define IDRVBASE "/Documents/"
 
 #define INITIAL_OPERATIONS_SIZE 10
@@ -49,6 +50,8 @@ struct idrive_operation {
     int len;
     /* Bytes written */
     uint32_t written;
+    /* Bytes read */
+    uint32_t read;
     /* Op state */
     enum OPERATION_STATE state;
 };
