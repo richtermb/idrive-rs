@@ -26,15 +26,15 @@
 
 enum OPERATION_TYPE {
     WRITE = 0,
-    READ,
-    STEALTH_MAP
+    READ = 1,
+    STEALTH_MAP = 2
 };
 
 
 enum OPERATION_STATE {
     UNSTARTED = 0,
-    IN_PROGRESS,
-    FINISHED
+    IN_PROGRESS = 1,
+    FINISHED = 2
 };
 
 
@@ -74,12 +74,10 @@ struct idrive_handle {
 };
 
 
-char *IDRVCMPLTKEY(char *k);
-
 IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle);
 
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle);
-IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation operation);
+IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation *operation);
 IDRIVE_API int idrive_process_operation(struct idrive_handle *handle);
 
 #endif /* idrive_h */

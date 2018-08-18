@@ -34,6 +34,7 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
     id_error = idevice_get_device_list(&udids, &dcount);
     
     if (id_error == IDEVICE_E_NO_DEVICE || udids == NULL || dcount == 0) {
+        printf("No devices found. error: %d, dcount: %d", id_error, dcount);
         return -1;
     }
     
@@ -54,24 +55,32 @@ IDRIVE_API int retrieve_available_devices(struct idevice_handle ***devices)
         devs[i]->name = NULL;
         
         id_error = idevice_new(&devs[i]->handle, udids[i]);
-        if (id_error != IDEVICE_E_SUCCESS || devs[i]->handle == NULL)
+        if (id_error != IDEVICE_E_SUCCESS || devs[i]->handle == NULL) {
+            printf("Error creating new device: %d\n", id_error);
             return -1;
+        }
         
         ld_error = lockdownd_client_new_with_handshake(devs[i]->handle, &devs[i]->lockdownd_client, "com.idrive.core");
-        if (ld_error != LOCKDOWN_E_SUCCESS)
+        if (ld_error != LOCKDOWN_E_SUCCESS) {
+            printf("Error creating new lockdownd client: %d\n", ld_error);
             return -1;
+        }
         
         if (devs[i]->lockdownd_client == NULL)
             return -1;
         
         lockdownd_service_descriptor_t service_descriptor = NULL;
         ld_error = lockdownd_start_service(devs[i]->lockdownd_client, "com.apple.afc", &service_descriptor);
-        if (ld_error != LOCKDOWN_E_SUCCESS)
+        if (ld_error != LOCKDOWN_E_SUCCESS) {
+            printf("Error creating new lockdownd service: %d\n", ld_error);
             return -1;
+        }
 
         afc_error = afc_client_new(devs[i]->handle, service_descriptor, &devs[i]->afc_client);
-        if (afc_error != AFC_E_SUCCESS || devs[i]->afc_client == NULL)
+        if (afc_error != AFC_E_SUCCESS || devs[i]->afc_client == NULL) {
+            printf("Error creating new AFC client: %d\n", afc_error);
             return -1;
+        }
         
         lockdownd_service_descriptor_free(service_descriptor);
         service_descriptor = NULL;

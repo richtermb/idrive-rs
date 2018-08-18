@@ -9,10 +9,34 @@
 #include "idrive.h"
 
 
-char *IDRVCMPLTKEY(char *k)
+static char *IDRVCMPLTKEY(char *k)
 {
     char tmp[255] = IDRVBASE;
     strcat(tmp, k);
+    char *res = malloc(sizeof(char) * 255);
+    strcpy(res, tmp);
+    return res;
+}
+
+
+static char *IDRVPATHTOKEY(char *k)
+{
+    /* k is path like so: data/AUG_17/sample.txt */
+    char tmp[255];
+    strcpy(tmp, k);
+    
+    uint8_t modified = 0;
+    
+    for (int i = 0; i < strlen(tmp); i++) {
+        if (tmp[i] == '/') {
+            tmp[i] =  '.';
+            modified = 1;
+        }
+    }
+    
+    if (modified == 0)
+        return k;
+
     char *res = malloc(sizeof(char) * 255);
     strcpy(res, tmp);
     return res;
@@ -57,10 +81,10 @@ static const char *DBG_OPSTATE_TO_STR(enum OPERATION_STATE opstate)
 IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle)
 {
     if (handle->opcount == 0) {
-        printf("No operations found.");
+        printf("No operations found.\n");
         return;
     }
-    
+    printf("\"device_%s\": ", handle->idh->name);
     for (int i = 0; i < handle->opcount; i++) {
         printf("{\n");
         printf("\t\"operationType\": \"%s\",\n", DBG_OPTYPE_TO_STR(handle->operations[i]->optype));
@@ -107,25 +131,21 @@ IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_o
     operation->state = IN_PROGRESS;
     
     /* Creates a new file on the device */
-    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(operation->key), AFC_FOPEN_WR, &fd);
-    
+    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(IDRVPATHTOKEY(operation->key)), AFC_FOPEN_WR, &fd);
     if (error != AFC_E_SUCCESS) {
         printf("AFC Error: %d\n", error);
         return -1;
     }
     
-    char *data = malloc(operation->len);
-    
+    char *data = malloc(sizeof(char) * operation->len);
     if (data == NULL)
         return -1;
     
     size_t bytes_read = fread(data, sizeof(char), operation->len, operation->fp);
-    
     if (bytes_read != operation->len)
         return -1;
     
     error = afc_file_write(handle->idh->afc_client, fd, data, operation->len, &operation->written);
-    
     if (error != AFC_E_SUCCESS)
         return -1;
 
@@ -143,27 +163,30 @@ IDRIVE_API static int idrive_read(struct idrive_handle *handle, struct idrive_op
     operation->state = IN_PROGRESS;
     
     /* Creates a new file on the device */
-    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(operation->key), AFC_FOPEN_RDONLY, &fd);
+    error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(IDRVPATHTOKEY(operation->key)), AFC_FOPEN_RDONLY, &fd);
     
     if (error != AFC_E_SUCCESS) {
         printf("AFC Error: %d\n", error);
         return -1;
     }
     
-    char *data = malloc(operation->len);
-    
+    char *data = malloc(sizeof(char) * operation->len);
     if (data == NULL)
         return -1;
     
     error = afc_file_read(handle->idh->afc_client, fd, data, operation->len, &operation->read);
-    if (operation->read == (uint32_t)operation->len)
+    
+    if (operation->read != (uint32_t)operation->len) {
+        printf("Read failed.\n");
         return -1;
+    }
 
     /* write bytes out to file */
     size_t bytes_written = fwrite(data, sizeof(char), operation->len, operation->fp);
-    
-    if (bytes_written != operation->len )
+    if (bytes_written != operation->len) {
+        printf("Writing file out failed.\n");
         return -1;
+    }
     
     if (error != AFC_E_SUCCESS)
         return -1;
@@ -192,7 +215,7 @@ IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **ha
 }
 
 
-IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation operation)
+IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation *operation)
 {
     if (handle->opcount >= handle->opsize) {
         /* if the operations list is full, increase memory available to it by a factor of 2 */
@@ -201,8 +224,9 @@ IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_
             return -1;
     }
     
-    handle->operations[handle->opcount] = &operation;
+    handle->operations[handle->opcount] = operation;
     handle->opcount++;
+    
     return 0;
 }
 
