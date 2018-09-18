@@ -14,23 +14,28 @@
 int main(int argc, const char * argv[]) {
     struct idevice_handle **devices = NULL;
     int device_count = retrieve_available_devices(&devices);
-    printf("device_count: %d\n", device_count);
+    
+    printf("Device_count: %d\n", device_count);
     
     if (device_count <= 0) {
         exit(1);
+        // #include <linux.h>
+        // panic('FUCK I HATE AAPL');
     }
     
     struct idrive_handle *idrive = NULL;
     int idx = -1;
     
     for (int i = 0; i < device_count; i++) {
+        /* Finds my iPhone 4 named IDRV_001 */
         if (strcmp(devices[i]->name, "IDRV_001") == 0)
             idx = i;
     }
     
     int res = idrive_init(devices[idx], &idrive);
     
-    struct idrive_operation operation1 = {
+    /* Writes my friend's essay to the hard drive of the iPhone */
+    struct idrive_operation WRITE_OP = {
         .fp = fopen("/Users/richter/Downloads/monkaS.pdf", "rb"),
         .lpath = "/Users/richter/Downloads/monkaS.pdf",
         .len = 40626,
@@ -41,7 +46,8 @@ int main(int argc, const char * argv[]) {
         .read = 0
     };
     
-    struct idrive_operation operation2 = {
+    /* Reads it back to my computer's SSD */
+    struct idrive_operation READ_OP = {
         .fp = fopen("/Users/richter/Downloads/monkaS_PDF.pdf", "wb+"),
         .lpath = "/Users/richter/Downloads/monkaS_PDF.pdf",
         .len = 40626,
@@ -52,8 +58,8 @@ int main(int argc, const char * argv[]) {
         .read = 0
     };
     
-    idrive_add_operation(idrive, &operation1);
-    idrive_add_operation(idrive, &operation2);
+    idrive_add_operation(idrive, &WRITE_OP);
+    idrive_add_operation(idrive, &READ_OP);
 
     DBG_PRINT_OPERATIONS(idrive);
     idrive_process_operation(idrive);

@@ -8,7 +8,7 @@
 
 #include "idrive.h"
 
-
+/* Path helpers */
 static char *IDRVCMPLTKEY(char *k)
 {
     char tmp[255] = IDRVBASE;
@@ -21,7 +21,7 @@ static char *IDRVCMPLTKEY(char *k)
 
 static char *IDRVPATHTOKEY(char *k)
 {
-    /* k is path like so: data/AUG_17/sample.txt */
+    /* k is a string like so: "data/AUG_17/sample.txt" */
     char tmp[255];
     strcpy(tmp, k);
     
@@ -78,6 +78,9 @@ static const char *DBG_OPSTATE_TO_STR(enum OPERATION_STATE opstate)
 }
 
 
+/*
+ * Nicely logs the queued operations to stdout
+ */
 IDRIVE_API void DBG_PRINT_OPERATIONS(struct idrive_handle *handle)
 {
     if (handle->opcount == 0) {
@@ -115,12 +118,14 @@ static int idrive_get_remaining_space(struct idrive_handle *handle)
         return -1;
     }
     
+    /* Nasty plist stuff */
     plist_get_uint_val(node, &handle->bytes);
     
     return 0;
 }
 
 
+/* Writes a file to the device */
 IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_operation *operation)
 {
     if (operation->optype == READ || operation->optype == STEALTH_MAP)
@@ -153,6 +158,9 @@ IDRIVE_API static int idrive_write(struct idrive_handle *handle, struct idrive_o
 }
 
 
+/*
+ * Reads a file from the device.
+ */
 IDRIVE_API static int idrive_read(struct idrive_handle *handle, struct idrive_operation *operation)
 {
     if (operation->optype == WRITE || operation->optype == STEALTH_MAP)
@@ -162,7 +170,7 @@ IDRIVE_API static int idrive_read(struct idrive_handle *handle, struct idrive_op
     uint64_t fd;
     operation->state = IN_PROGRESS;
     
-    /* Creates a new file on the device */
+    /* Opens the file on the device */
     error = afc_file_open(handle->idh->afc_client, IDRVCMPLTKEY(IDRVPATHTOKEY(operation->key)), AFC_FOPEN_RDONLY, &fd);
     
     if (error != AFC_E_SUCCESS) {
@@ -195,6 +203,9 @@ IDRIVE_API static int idrive_read(struct idrive_handle *handle, struct idrive_op
 }
 
 
+/*
+ * Initializes the drive abstraction
+ */
 IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **handle)
 {
     struct idrive_handle *new_drive = malloc(sizeof(struct idrive_handle));
@@ -215,6 +226,9 @@ IDRIVE_API int idrive_init(struct idevice_handle *dev, struct idrive_handle **ha
 }
 
 
+/*
+ * Queues an operation
+ */
 IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_operation *operation)
 {
     if (handle->opcount >= handle->opsize) {
@@ -231,6 +245,11 @@ IDRIVE_API int idrive_add_operation(struct idrive_handle *handle, struct idrive_
 }
 
 
+/*
+ * Processes the first operation on the list.
+ * Someone should try parallelising this, I don't know how well it'll
+ * work using the libimobiledevice API.
+ */
 IDRIVE_API int idrive_process_operation(struct idrive_handle *handle)
 {
     if (handle->opcount == 0 || handle->operations[0] == NULL) {
