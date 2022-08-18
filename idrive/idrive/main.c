@@ -6,8 +6,6 @@
 //  Copyright © 2018 Richter Brzeski. All rights reserved.
 
 
-// Hi Austin! Look at /storage and /device!
-
 #include <stdio.h>
 #include <string.h>
 
@@ -22,7 +20,7 @@ int main(int argc, const char * argv[]) {
     if (device_count <= 0) {
         exit(1);
         // #include <linux.h>
-        // panic('FUCK I HATE AAPL');
+        // panic();
     }
     
     struct idrive_handle *idrive = NULL;
@@ -36,7 +34,7 @@ int main(int argc, const char * argv[]) {
     
     int res = idrive_init(devices[idx], &idrive);
     
-    /* Writes my friend's essay to the hard drive of the iPhone */
+    /* Writes a PDF to the hard drive of the iPhone */
     struct idrive_operation WRITE_OP = {
         .fp = fopen("/Users/richter/Downloads/monkaS.pdf", "rb"),
         .lpath = "/Users/richter/Downloads/monkaS.pdf",
@@ -48,7 +46,7 @@ int main(int argc, const char * argv[]) {
         .read = 0
     };
     
-    /* Reads it back to my computer's SSD */
+    /* Reads it back */
     struct idrive_operation READ_OP = {
         .fp = fopen("/Users/richter/Downloads/monkaS_PDF.pdf", "wb+"),
         .lpath = "/Users/richter/Downloads/monkaS_PDF.pdf",
